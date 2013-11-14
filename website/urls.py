@@ -4,5 +4,8 @@
 
 from django.conf.urls import patterns, url
 
+import api
+
 urlpatterns = patterns('',
+    url('^api/v1/submit$', api.submit)
 )
