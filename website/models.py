@@ -17,7 +17,7 @@ class Location(models.Model):
 class Device(models.Model):
     id = models.CharField(max_length = 50, primary_key = True)
     name = models.CharField(max_length = 50, blank = True)
-    location = models.ForeignKey(Location, null = True)
+    location = models.ForeignKey(Location, null = True, related_name = "devices")
 
     def __unicode__(self):
         if self.name:
@@ -35,7 +35,7 @@ class Type(models.Model):
         return self.name if self.name else self.id
 
 class Sensor(models.Model):
-    device = models.ForeignKey(Device)
+    device = models.ForeignKey(Device, related_name = "sensors")
     sid = models.CharField(max_length = 50)
     name = models.CharField(max_length = 50)
     type = models.ForeignKey(Type)
@@ -47,7 +47,7 @@ class Sensor(models.Model):
         unique_together = ("device", "sid")
 
 class Measurement(models.Model):
-    sensor = models.ForeignKey(Sensor)
+    sensor = models.ForeignKey(Sensor, related_name = "measurements")
     time = models.DateTimeField()
     value = models.FloatField()
 
