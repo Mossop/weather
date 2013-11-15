@@ -15,7 +15,7 @@ class Location(models.Model):
         return self.name
 
 class Device(models.Model):
-    id = models.CharField(max_length = 20, primary_key = True)
+    id = models.CharField(max_length = 50, primary_key = True)
     name = models.CharField(max_length = 50)
     location = models.ForeignKey(Location, null = True)
 
@@ -23,7 +23,7 @@ class Device(models.Model):
         return self.name if self.name else self.id
 
 class Type(models.Model):
-    id = models.CharField(max_length = 20, primary_key = True)
+    id = models.CharField(max_length = 50, primary_key = True)
     name = models.CharField(max_length = 50)
     units = models.CharField(max_length = 10)
 
@@ -32,7 +32,7 @@ class Type(models.Model):
 
 class Sensor(models.Model):
     device = models.ForeignKey(Device)
-    sid = models.CharField(max_length = 20)
+    sid = models.CharField(max_length = 50)
     name = models.CharField(max_length = 50)
     type = models.ForeignKey(Type)
 
