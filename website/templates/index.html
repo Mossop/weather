@@ -1,0 +1,62 @@
+{% extends "graph.html" %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-2">
+      <p class="text-center">
+        <select>
+          <option name="-">---</option>
+{% for type in types %}
+          <option name="{{ type.id }}">{{ type }}</option>
+{% endfor %}
+        </select>
+      </p>
+    </div>
+    <div class="col-md-8 text-center">
+      <div id="graphrange">
+        <i class="fa fa-calendar fa-lg"></i>
+        <span></span> <b class="caret"></b>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <p class="text-center">
+        <select>
+          <option name="-">---</option>
+{% for type in types %}
+          <option name="{{ type.id }}">{{ type }}</option>
+{% endfor %}
+        </select>
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-8">
+    </div>
+    <div class="col-md-2">
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  $('#graphrange').daterangepicker({
+      ranges: {
+        'Last Week': [moment().subtract('days', 6), moment()],
+        'Last Month': [moment().subtract('month', 1), moment()],
+        'Last Year': [moment().subtract('year', 1), moment()]
+      },
+      startDate: moment(),
+      endDate: moment().subtract('month', 1),
+      minDate: moment.unix({{ mindate|date:"U" }}),
+      maxDate: moment.unix({{ maxdate|date:"U" }})
+    },
+    function(start, end) {
+      $('#graphrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    }
+  );
+</script>
+{% endblock %}
