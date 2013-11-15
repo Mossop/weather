@@ -9,6 +9,9 @@ class Location(models.Model):
     longitude = models.FloatField()
     latitude = models.FloatField()
 
+    def __unicode__(self):
+        return self.name
+
 class Device(models.Model):
     id = models.CharField(max_length = 20, primary_key = True)
     name = models.CharField(max_length = 50)
