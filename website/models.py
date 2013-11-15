@@ -16,11 +16,15 @@ class Location(models.Model):
 
 class Device(models.Model):
     id = models.CharField(max_length = 50, primary_key = True)
-    name = models.CharField(max_length = 50)
+    name = models.CharField(max_length = 50, blank = True)
     location = models.ForeignKey(Location, null = True)
 
     def __unicode__(self):
-        return self.name if self.name else self.id
+        if self.name:
+            return self.name
+        if self.location:
+            return self.location.name
+        return self.id
 
 class Type(models.Model):
     id = models.CharField(max_length = 50, primary_key = True)
