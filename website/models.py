@@ -3,11 +3,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from django.db import models
+from timezone_field import TimeZoneField
 
 class Location(models.Model):
     name = models.CharField(max_length = 50)
     longitude = models.FloatField()
     latitude = models.FloatField()
+    timezone = TimeZoneField()
 
     def __unicode__(self):
         return self.name
