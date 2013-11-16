@@ -1,0 +1,19 @@
+#layout {
+  height: 500px;
+}
+
+#graph-container * {
+  -moz-box-sizing: content-box;
+}
+
+#left-axis {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40px
+}
+
+#chart {
+  margin-left: 40px
+}
