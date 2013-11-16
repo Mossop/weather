@@ -17,7 +17,7 @@ from website.models import *
 def to_epoch(time):
     epoch = datetime.fromtimestamp(0, utc)
     delta = time - epoch
-    return delta.total_seconds()
+    return delta.seconds + delta.days * 24 * 3600
 
 def jsonify(data):
     return HttpResponse(json.dumps(data), content_type='application/json')
