@@ -34,11 +34,7 @@
     <div class="col-md-2">
       <div id="left-legend"></div>
     </div>
-    <div id="graph-container" class="col-md-8">
-      <div id="left-axis"></div>
-      <div id="chart"></div>
-      <div id="right-axis"></div>
-    </div>
+    <div id="chart" class="col-md-8"></div>
     <div class="col-md-2">
       <div id="right-legend"></div>
     </div>
@@ -60,126 +56,25 @@
   }
 
   function updateGraph() {
-    $('#chart').html('');
-    $('#left-axis').html('');
-    $('#left-legend').html('');
-    $('#right-axis').html('');
-    $('#right-legend').html('');
-    $('#graphrange span').html(startDate.format('MMMM D, YYYY') + ' - ' + endDate.format('MMMM D, YYYY'));
-
     fetchMeasurements($('#left-type').val(), function(leftData) {
-      fetchMeasurements($('#right-type').val(), function(rightData) {
-        var palette = new Rickshaw.Color.Palette();
+      var leftChartData = [
+        { id: d.device.location.id, data: [m for (m of d.measurements)] }
+        for (d of leftData)
+      ];
 
-        var series = [];
+      var extents = getTimeBounds(leftChartData);
 
-        if (leftData) {
-          leftMax = 0;
-          for (var sensor of leftData) {
-            for (var measurement of sensor.measurements)
-              leftMax = Math.max(leftMax, measurement.value);
-          }
-
-          for (var sensor of leftData) {
-            series.push({
-              name: sensor.device.name,
-              color: palette.color(),
-              data: [{x: m.time, y: m.value / leftMax} for (m of sensor.measurements)]
-            })
-          }
-        }
-
-        if (rightData) {
-          rightMax = 0;
-          for (var sensor of rightData) {
-            for (var measurement of sensor.measurements)
-              leftMax = Math.max(rightMax, measurement.value);
-          }
-
-          for (var sensor of rightData) {
-            series.push({
-              name: sensor.device.name,
-              color: palette.color(),
-              data: [{x: m.time, y: m.value / rightMax} for (m of sensor.measurements)]
-            })
-          }
-        }
-
-        var graph = new Rickshaw.Graph({
-          element: document.querySelector("#chart"),
-          renderer: 'line',
-          series: series,
-          width: 700,
-          height: 500
-        });
-
-        var x_axis = new Rickshaw.Graph.Axis.Time({
-          graph: graph,
-          ticksTreatment: "glow"
-        });
-
-        if (leftData) {
-          var left_axis = new Rickshaw.Graph.Axis.Y({
-            graph: graph,
-            orientation: 'left',
-            element: document.getElementById('left-axis'),
-            tickFormat: function(v) { return (leftMax * v).toFixed(2); }
-          });
-
-          var left_legend = new Rickshaw.Graph.Legend({
-            graph: graph,
-            element: document.querySelector('#left-legend')
-          });
-
-          /*var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-            graph: graph,
-            legend: left_legend
-          });*/
-
-          var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
-            graph: graph,
-            legend: left_legend
-          });
-        }
-
-        if (rightData) {
-          var right_axis = new Rickshaw.Graph.Axis.Y({
-            graph: graph,
-            orientation: 'right',
-            element: document.getElementById('right-axis'),
-            tickFormat: function(v) { return (rightMax * v).toFixed(2); }
-          });
-
-          var right_legend = new Rickshaw.Graph.Legend({
-            graph: graph,
-            element: document.querySelector('#right-legend')
-          });
-
-          /*var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-            graph: graph,
-            legend: right_legend
-          });*/
-
-          var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
-            graph: graph,
-            legend: right_legend
-          });
-        }
-
-        new Rickshaw.Graph.HoverDetail({
-          graph: graph,
-          xFormatter: function(x) {
-            var date = moment.unix(x);
-            return date.format('lll');
-          },
-          yFormatter: function(y) {
-            return (parseFloat(y) * leftMax).toFixed(2);
-          }
-        });
-
-        graph.render();
+      var chart = new TimeChart("#chart", {
+        minTime: extents[0],
+        maxTime: extents[1]
       });
+
+      chart.drawAxis(chart.addLineSeries(leftChartData));
     });
+  }
+
+  function updatePicker() {
+    $('#graphrange span').html(startDate.format('MMMM D, YYYY') + ' - ' + endDate.format('MMMM D, YYYY'));
   }
 
   $('#graphrange').daterangepicker({
@@ -197,13 +92,13 @@
       startDate = start;
       endDate = end;
 
+      updatePicker();
       updateGraph();
     }
   );
 
   $('#left-type').on('change', updateGraph);
   $('#right-type').on('change', updateGraph);
-
-  updateGraph();
+  updatePicker();
 </script>
 {% endblock %}

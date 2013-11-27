@@ -14,11 +14,6 @@ import json
 
 from website.models import *
 
-def to_epoch(time):
-    epoch = datetime.fromtimestamp(0, utc)
-    delta = time - epoch
-    return delta.seconds + delta.days * 24 * 3600
-
 def jsonify(data):
     return HttpResponse(json.dumps(data), content_type='application/json')
 
@@ -55,17 +50,8 @@ def measurements(request):
     sensors = Sensor.objects.filter(type = type)
     for sensor in sensors:
         measurements = Measurement.objects.filter(sensor = sensor, time__gte = mindate, time__lte = maxdate).order_by("time")
-
-        results.append({
-          "id": sensor.sid,
-          "name": sensor.name,
-          "device": {
-            "id": sensor.device.id,
-            "name": sensor.device.__unicode__(),
-            "longitude": sensor.device.location.longitude,
-            "latitude": sensor.device.location.latitude
-          },
-          "measurements": [{ "time": to_epoch(m.time), "value": m.value } for m in measurements]
-        })
+        sdata = sensor.get_json(False, True)
+        sdata["measurements"] = [m.get_json(True, False) for m in measurements]
+        results.append(sdata)
 
     return jsonify(results)
