@@ -32,11 +32,10 @@
   </div>
   <div class="row">
     <div class="col-md-2">
-      <div id="left-legend"></div>
+      <ul id="legend"></ul>
     </div>
     <div id="chart" class="col-md-8"></div>
     <div class="col-md-2">
-      <div id="right-legend"></div>
     </div>
   </div>
 </div>
@@ -55,11 +54,28 @@
     $.getJSON(url, null, callback);
   }
 
+  function updateLegend(series) {
+    d3.select("#legend")
+      .selectAll("li")
+      .data(series, d => { return d.device.location.id })
+      .enter()
+      .append("li")
+      .text(d => { return d.device.location.name })
+      .on("mouseenter", d => {
+        d3.selectAll("#chart-series-" + d.device.location.id).attr("hovered", "true")
+      })
+      .on("mouseleave", d => {
+        d3.selectAll("#chart-series-" + d.device.location.id).attr("hovered", null)
+      })
+  }
+
   function updateGraph() {
-    fetchMeasurements($('#left-type').val(), function(leftData) {
+    fetchMeasurements($('#left-type').val(), function(leftSeries) {
+      updateLegend(leftSeries);
+
       var leftChartData = [
         { id: d.device.location.id, data: [m for (m of d.measurements)] }
-        for (d of leftData)
+        for (d of leftSeries)
       ];
 
       var extents = getTimeBounds(leftChartData);
@@ -97,8 +113,20 @@
     }
   );
 
-  $('#left-type').on('change', updateGraph);
-  $('#right-type').on('change', updateGraph);
-  updatePicker();
+  function init() {
+    $('#left-type').on('change', updateGraph);
+    $('#right-type').on('change', updateGraph);
+    updatePicker();
+
+    d3.select("#legend")
+      .on("mouseenter", () => {
+        d3.select("#chart .chart-data").attr("hovered", "true");
+      })
+      .on("mouseleave", () => {
+        d3.select("#chart .chart-data").attr("hovered", null);
+      })
+  }
+
+  init();
 </script>
 {% endblock %}

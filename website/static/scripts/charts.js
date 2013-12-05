@@ -42,8 +42,6 @@ var getTimeBounds;
     var extents = [new Date(options.minTime * 1000), new Date(options.maxTime * 1000)];
     this._timeScale = d3.time.scale().domain(extents).range([0, this._width]);
 
-    this._seriesMap = new Map();
-
     var margin = options.margin || 40;
 
     d3.select(element).html("");
@@ -55,7 +53,7 @@ var getTimeBounds;
                     .attr("transform", "translate(" + margin + "," + margin + ")");
 
     var border = this._graph.append("svg:g")
-                            .attr("class", "border");
+                            .attr("class", "chart-border");
 
     appendLine(border, 0, 0, 0, this._height, "left");
     appendLine(border, this._width, 0, this._width, this._height, "right");
@@ -63,10 +61,10 @@ var getTimeBounds;
     appendLine(border, 0, this._height, this._width, this._height, "bottom");
 
     this._graph.append("svg:g")
-               .attr("class", "axis");
+               .attr("class", "chart-axis");
 
     this._graph.append("svg:g")
-               .attr("class", "data");
+               .attr("class", "chart-data");
 
     this._drawXAxis();
   }
@@ -80,7 +78,6 @@ var getTimeBounds;
 
     _timeScale: null,
     _graph: null,
-    _seriesMap: null,
 
     addLineSeries: function(series, options) {
       options = options || {};
@@ -88,30 +85,25 @@ var getTimeBounds;
       var bounds = getBounds(series, "value");
 
       var scale = d3.scale.linear().domain(bounds).nice().range([this._height, 0]);
+      var palette = this._palette;
+      var seriesKey = options.seriesKey || (d => { return d.id });
+      var seriesData = options.seriesData || (d => { return d.data });
 
-      for (var s of series) {
-        if (this._seriesMap.has(s.id)) {
-          var seriesInfo = this._seriesMap.get(s.id);
-        }
-        else {
-          seriesInfo = {
-            color: this._palette(this._paletteCount++)
-          };
-          this._seriesMap.set(s.id, seriesInfo);
-        }
-
-        this._graph.select(".data")
-                   .append("svg:g")
-                   .attr("class", "series " + s.id)
-                   .attr("stroke", seriesInfo.color)
-                   .append("svg:path")
-                   .attr("class", "line")
-                   .datum(s.data)
-                   .attr("d", d3.svg.line()
-                                    .x(d => { return this._timeScale(new Date(d["time"] * 1000)) })
-                                    .y(d => { return scale(d["value"]) })
-                                    .interpolate(options.interpolate || "basis"));
-      }
+      this._graph.select(".chart-data")
+                 .selectAll(".chart-series")
+                 .data(series, seriesKey)
+                 .enter()
+                 .append("svg:g")
+                 .attr("id", d => { return "chart-series-" + seriesKey(d) })
+                 .attr("class", "chart-series")
+                 .attr("color", function(d) { return palette(Array.prototype.indexOf.call(this.parentNode.childNodes, this)) })
+                 .append("svg:path")
+                 .attr("class", "chart-line")
+                 .datum(seriesData)
+                 .attr("d", d3.svg.line()
+                                  .x(d => { return this._timeScale(new Date(d["time"] * 1000)) })
+                                  .y(d => { return scale(d["value"]) })
+                                  .interpolate(options.interpolate || "basis"));
 
       return scale;
     },
@@ -119,7 +111,7 @@ var getTimeBounds;
     _drawXAxis: function() {
       var scale = this._timeScale;
 
-      var box = this._graph.select(".axis")
+      var box = this._graph.select(".chart-axis")
                            .append("svg:g")
                            .attr("class", "bottom")
                            .attr("transform", "translate(0," + this._height + ")");
@@ -147,7 +139,7 @@ var getTimeBounds;
       if (position != "right")
         position = "left";
 
-      var box = this._graph.select(".axis")
+      var box = this._graph.select(".chart-axis")
                            .append("svg:g")
                            .attr("class", position);
       var x2 = -10;

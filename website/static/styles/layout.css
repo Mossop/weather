@@ -9,16 +9,3 @@
 svg {
   width: 100%;
 }
-
-.border {
-  stroke: black;
-}
-
-.axis {
-  stroke: black;
-}
-
-.data {
-  stroke-width: 1.5;
-  fill: none;
-}
