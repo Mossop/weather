@@ -6,8 +6,17 @@
   margin-top: 60px;
 }
 
+#legend li {
+  list-style: none;
+}
+
 #legend label {
   font-weight: normal;
+}
+
+#legend input {
+  margin-right: 5px;
+  vertical-align: center;
 }
 
 #chart * {
