@@ -36,8 +36,8 @@ var getTimeBounds;
 
     this._palette = options.palette || d3.scale.category10();
     this._paletteCount = 0;
-    this._width = options.width || 600;
-    this._height = options.height || 450;
+    this._width = options.width || 800;
+    this._height = options.height || 600;
 
     var extents = [new Date(options.minTime * 1000), new Date(options.maxTime * 1000)];
     this._timeScale = d3.time.scale().domain(extents).range([0, this._width]);
@@ -126,7 +126,7 @@ var getTimeBounds;
         box.append("svg:text")
            .attr("text-anchor", "middle")
            .attr("x", x)
-           .attr("y", y2 * 2)
+           .attr("y", y2 * 1.5)
            .attr("dy", "1em")
            .html(formatter(t));
       }
@@ -158,7 +158,7 @@ var getTimeBounds;
         box.append("svg:text")
            .attr("dy", "0.3em")
            .attr("text-anchor", position == "left" ? "end" : "start")
-           .attr("x", x2 * 2)
+           .attr("x", x2 * 1.5)
            .attr("y", y)
            .html(formatter(t));
       }

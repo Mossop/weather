@@ -6,6 +6,11 @@
   stroke: black;
 }
 
+.chart-axis text {
+  stroke-width: 0.5;
+  font-size: 120%;
+}
+
 .chart-line {
   fill: none;
   stroke: currentColor;
