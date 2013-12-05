@@ -11,7 +11,3 @@
   stroke: currentColor;
   stroke-width: 1.5;
 }
-
-.chart-data[hovered] .chart-series:not([hovered]) {
-  opacity: 0.2;
-}

@@ -60,13 +60,23 @@
       .data(series, d => { return d.device.location.id })
       .enter()
       .append("li")
-      .text(d => { return d.device.location.name })
       .on("mouseenter", d => {
-        d3.selectAll("#chart-series-" + d.device.location.id).attr("hovered", "true")
+        d3.select("#chart-series-" + d.device.location.id).attr("hovered", "true")
       })
       .on("mouseleave", d => {
-        d3.selectAll("#chart-series-" + d.device.location.id).attr("hovered", null)
+        d3.select("#chart-series-" + d.device.location.id).attr("hovered", null)
       })
+      .append("label")
+      .insert("input", ":first-child")
+      .attr("type", "checkbox")
+      .attr("checked", "checked")
+      .on("change", function(d) {
+        d3.select("#chart-series-" + d.device.location.id).attr("visibility", this.checked ? "visible" : "hidden");
+      })
+
+    d3.selectAll("#legend label")
+      .append("span")
+      .text(d => { return d.device.location.name });
   }
 
   function updateGraph() {

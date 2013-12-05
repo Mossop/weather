@@ -2,10 +2,22 @@
   height: 500px;
 }
 
+#legend {
+  margin-top: 60px;
+}
+
+#legend label {
+  font-weight: normal;
+}
+
 #chart * {
   -moz-box-sizing: content-box;
 }
 
 svg {
   width: 100%;
+}
+
+.chart-data[hovered] .chart-series:not([hovered]) {
+  opacity: 0.2;
 }
