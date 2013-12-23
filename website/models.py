@@ -7,6 +7,12 @@ from django.utils.timezone import utc
 from timezone_field import TimeZoneField
 from datetime import datetime
 
+SENSOR_TYPES = (
+    ('I', 'Instantaneous'),
+    ('A', 'Average'),
+    ('S', 'Sum'),
+)
+
 def to_epoch(time):
     epoch = datetime.fromtimestamp(0, utc)
     delta = time - epoch
@@ -63,6 +69,7 @@ class Type(models.Model):
     id = models.CharField(max_length = 50, primary_key = True)
     name = models.CharField(max_length = 50)
     units = models.CharField(max_length = 10)
+    type = models.CharField(max_length = 1, choices = SENSOR_TYPES, default = "I")
 
     def __unicode__(self):
         return self.name if self.name else self.id
@@ -71,7 +78,8 @@ class Type(models.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "units": self.units
+            "units": self.units,
+            "type": self.type
         }
 
 class Sensor(models.Model):
@@ -104,11 +112,13 @@ class Measurement(models.Model):
     sensor = models.ForeignKey(Sensor, related_name = "measurements")
     time = models.DateTimeField()
     value = models.FloatField()
+    duration = models.IntegerField(default = 0)
 
     def get_json(self, from_parent = False, from_child = False):
         obj = {
             "time": to_epoch(self.time),
-            "value": self.value
+            "value": self.value,
+            "duration": self.duration
         }
 
         if not from_parent:

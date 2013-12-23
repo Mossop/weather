@@ -32,10 +32,12 @@ def submit(request):
             raise HttpResponseServerError("Incorrect type for sensor %s on device %s" % (data["sensor"], data["device"]))
 
         time = datetime.fromtimestamp(int(data["time"]), utc)
-        measurement, created = Measurement.objects.get_or_create(sensor = sensor, time = time, defaults = { "value": float(data["value"]) })
+        duration = int(data["duration"]) if "duration" in data else 0
+        measurement, created = Measurement.objects.get_or_create(sensor = sensor, time = time, defaults = { "value": float(data["value"]), "duration": duration })
 
         if not created:
             measurement.value = float(data["value"])
+            measurement.duration = duration
             measurement.save()
 
     return HttpResponse("%s\n" % len(readings), content_type="text/plain")
