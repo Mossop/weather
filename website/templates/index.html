@@ -100,7 +100,8 @@
 
       var type = leftSeries[0].type;
 
-      chart.drawAxis(chart.addLineSeries(leftChartData), {
+      var method = type.type == "S" ? "addBarSeries" : "addLineSeries";
+      chart.drawAxis(chart[method](leftChartData), {
         title: type.name + " (" + type.units + ")"
       });
     });

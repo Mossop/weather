@@ -16,3 +16,8 @@
   stroke: currentColor;
   stroke-width: 1.5;
 }
+
+.chart-bar {
+  fill: currentColor;
+  stroke: currentColor;
+}

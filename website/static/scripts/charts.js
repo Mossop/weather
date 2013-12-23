@@ -101,30 +101,78 @@ var getTimeBounds;
     _graph: null,
 
     addLineSeries: function(series, options) {
-      options = options || {};
+      options = override({
+        seriesKey: (d => { return d.id }),
+        seriesData: (d => { return d.data }),
+        interpolate: "basis"
+      }, options);
 
       var bounds = getBounds(series, "value");
 
       var scale = d3.scale.linear().domain(bounds).nice().range([this._options.height, 0]);
       var palette = this._options.palette;
-      var seriesKey = options.seriesKey || (d => { return d.id });
-      var seriesData = options.seriesData || (d => { return d.data });
 
       this._graph.select(".chart-data")
                  .selectAll(".chart-series")
-                 .data(series, seriesKey)
+                 .data(series, options.seriesKey)
                  .enter()
                  .append("svg:g")
-                 .attr("id", d => { return "chart-series-" + seriesKey(d) })
+                 .attr("id", d => { return "chart-series-" + options.seriesKey(d) })
                  .attr("class", "chart-series")
                  .attr("color", function(d) { return palette(Array.prototype.indexOf.call(this.parentNode.childNodes, this)) })
                  .append("svg:path")
                  .attr("class", "chart-line")
-                 .datum(seriesData)
+                 .datum(options.seriesData)
                  .attr("d", d3.svg.line()
                                   .x(d => { return this._timeScale(new Date(d["time"] * 1000)) })
                                   .y(d => { return scale(d["value"]) })
-                                  .interpolate(options.interpolate || "basis"));
+                                  .interpolate(options.interpolate));
+
+      return scale;
+    },
+
+    addBarSeries: function(series, options) {
+      options = override({
+        seriesKey: (d => { return d.id }),
+        seriesData: (d => { return d.data }),
+      }, options);
+
+      var bounds = getBounds(series, "value");
+
+      var scale = d3.scale.linear().domain(bounds).nice().range([this._options.height, 0]);
+      var palette = this._options.palette;
+
+      y = (d) => {
+        return d["value"] > 0 ? scale(d["value"]) : scale(0);
+      }
+
+      height = (d) => {
+        return d["value"] > 0 ? scale(0) - scale(d["value"]) :
+                                scale(d["value"]) - scale(0);
+      }
+
+      width = (d) => {
+        return this._timeScale(new Date((d["time"] + d["duration"]) * 1000)) -
+               this._timeScale(new Date(d["time"] * 1000))
+      }
+
+      this._graph.select(".chart-data")
+                 .selectAll(".chart-series")
+                 .data(series, options.seriesKey)
+                 .enter()
+                 .append("svg:g")
+                 .attr("id", d => { return "chart-series-" + options.seriesKey(d) })
+                 .attr("class", "chart-series")
+                 .attr("color", function(d) { return palette(Array.prototype.indexOf.call(this.parentNode.childNodes, this)) })
+                 .selectAll(".chart-bar")
+                 .data(options.seriesData)
+                 .enter()
+                 .append("svg:rect")
+                 .attr("class", "chart-bar")
+                 .attr("x", d => { return this._timeScale(new Date(d["time"] * 1000)) })
+                 .attr("y", y)
+                 .attr("width", width)
+                 .attr("height", height)
 
       return scale;
     },
