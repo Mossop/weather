@@ -2,6 +2,22 @@ var TimeChart;
 var getTimeBounds;
 
 (function() {
+  function override() {
+    var args = Array.slice(arguments, 0);
+    var merged = {};
+
+    for (var obj of args) {
+      if (!obj)
+        continue;
+
+      for (var k in obj) {
+        merged[k] = obj[k];
+      }
+    }
+
+    return merged;
+  }
+
   function getInnerBounds(series, prop) {
     return [
       d3.max([d3.min([d[prop] for (d of s.data)]) for (s of series)]),
@@ -32,33 +48,40 @@ var getTimeBounds;
   }
 
   TimeChart = function(element, options) {
-    options = options || {};
+    this._options = override({
+      palette: d3.scale.category10(),
+      width: 800,
+      height: 600,
+      margin: 40,
+    }, options);
 
-    this._palette = options.palette || d3.scale.category10();
     this._paletteCount = 0;
-    this._width = options.width || 800;
-    this._height = options.height || 600;
+    this._padding = {
+      left: this._options.margin,
+      right: this._options.margin,
+      top: this._options.margin,
+      bottom: this._options.margin
+    }
 
     var extents = [new Date(options.minTime * 1000), new Date(options.maxTime * 1000)];
-    this._timeScale = d3.time.scale().domain(extents).range([0, this._width]);
+    this._timeScale = d3.time.scale().domain(extents).range([0, this._options.width]);
 
-    var margin = options.margin || 40;
+    var margin = this._options.margin;
 
     d3.select(element).html("");
 
     this._graph = d3.select(element)
-                    .append("svg:svg")
-                    .attr("viewBox", "0 0 " + (this._width + margin * 2) + " " + (this._height + margin * 2))
-                    .append("svg:g")
-                    .attr("transform", "translate(" + margin + "," + margin + ")");
+                    .append("svg:svg");
+
+    this._updateViewBox();
 
     var border = this._graph.append("svg:g")
                             .attr("class", "chart-border");
 
-    appendLine(border, 0, 0, 0, this._height, "left");
-    appendLine(border, this._width, 0, this._width, this._height, "right");
-    appendLine(border, 0, 0, this._width, 0, "top");
-    appendLine(border, 0, this._height, this._width, this._height, "bottom");
+    appendLine(border, 0, 0, 0, this._options.height, "left");
+    appendLine(border, this._options.width, 0, this._options.width, this._options.height, "right");
+    appendLine(border, 0, 0, this._options.width, 0, "top");
+    appendLine(border, 0, this._options.height, this._options.width, this._options.height, "bottom");
 
     this._graph.append("svg:g")
                .attr("class", "chart-axis");
@@ -70,11 +93,8 @@ var getTimeBounds;
   }
 
   TimeChart.prototype = {
-    _width: null,
-    _height: null,
-    _palette: null,
-
     _paletteCount: null,
+    _padding: null,
 
     _timeScale: null,
     _graph: null,
@@ -84,8 +104,8 @@ var getTimeBounds;
 
       var bounds = getBounds(series, "value");
 
-      var scale = d3.scale.linear().domain(bounds).nice().range([this._height, 0]);
-      var palette = this._palette;
+      var scale = d3.scale.linear().domain(bounds).nice().range([this._options.height, 0]);
+      var palette = this._options.palette;
       var seriesKey = options.seriesKey || (d => { return d.id });
       var seriesData = options.seriesData || (d => { return d.data });
 
@@ -108,13 +128,22 @@ var getTimeBounds;
       return scale;
     },
 
+    _updateViewBox: function() {
+      var viewBox = "-" + this._padding.left + " " +
+                    "-" + this._padding.top + " " +
+                    (this._options.width + this._padding.left + this._padding.right) + " " +
+                    (this._options.height + this._padding.top + this._padding.bottom) + " ";
+
+      this._graph.attr("viewBox", viewBox);
+    },
+
     _drawXAxis: function() {
       var scale = this._timeScale;
 
       var box = this._graph.select(".chart-axis")
                            .append("svg:g")
                            .attr("class", "bottom")
-                           .attr("transform", "translate(0," + this._height + ")");
+                           .attr("transform", "translate(0," + this._options.height + ")");
       var y2 = 10;
 
       var ticks = scale.ticks();
@@ -145,7 +174,7 @@ var getTimeBounds;
       var x2 = -10;
 
       if (position == "right") {
-        box.attr("transform", "translate(" + this._width + ",0)");
+        box.attr("transform", "translate(" + this._options.width + ",0)");
         x2 = -x2;
       }
 
@@ -164,6 +193,4 @@ var getTimeBounds;
       }
     }
   }
-
-  return TimeChart;
 })();
