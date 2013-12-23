@@ -152,8 +152,9 @@ var getTimeBounds;
 
       for (var t of ticks) {
         var x = scale(t);
-        appendLine(box, x, 0, x, this._options.axisTickSize);
-        var text = box.append("svg:text");
+        appendLine(box, x, 0, x, this._options.axisTickSize, "tick-line");
+        var text = box.append("svg:text")
+                      .attr("class", "tick-text");
         text.text(formatter(t));
         var bbox = text.node().getBBox();
         maxWidth = Math.max(bbox.width + bbox.x, maxWidth);
@@ -193,19 +194,34 @@ var getTimeBounds;
 
       for (var t of ticks) {
         var y = scale(t);
-        appendLine(box, 0, y, x2, y);
+        appendLine(box, 0, y, x2, y, "tick-line");
         var text = box.append("svg:text")
+                      .attr("class", "tick-text")
                       .attr("text-anchor", options.position == "left" ? "end" : "start");
         text.text(formatter(t));
         var bbox = text.node().getBBox();
-        console.log(bbox);
         var width = options.position == "left" ? -bbox.x : bbox.width + bbox.x;
         maxWidth = Math.max(width, maxWidth);
 
         text.attr("transform", "translate(" + (x2 * 2) + ", " + (y + (-bbox.y / 2)) + ")");
       }
 
-      this._padding[options.position] = maxWidth + (this._options.axisTickSize * 2) + this._options.margin;
+      var padding = maxWidth + (this._options.axisTickSize * 2);
+
+      if ("title" in options) {
+        padding += this._options.axisTickSize * 2;
+
+        var text = box.append("svg:text")
+                      .attr("class", "axis-title")
+                      .attr("text-anchor", "middle");
+        text.text(options.title);
+        var bbox = text.node().getBBox();
+        var xtrans = options.position == "left" ? -padding : padding;
+        text.attr("transform", "translate(" + xtrans + ", " + (this._options.height / 2) + "), rotate(-90)");
+        padding += -bbox.y
+      }
+
+      this._padding[options.position] = padding + this._options.margin;
       this._updateViewBox();
     }
   }

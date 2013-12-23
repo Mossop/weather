@@ -97,7 +97,11 @@
         maxTime: extents[1]
       });
 
-      chart.drawAxis(chart.addLineSeries(leftChartData));
+      var type = leftSeries[0].type;
+
+      chart.drawAxis(chart.addLineSeries(leftChartData), {
+        title: type.name + " (" + type.units + ")"
+      });
     });
   }
 
