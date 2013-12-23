@@ -52,7 +52,8 @@ var getTimeBounds;
       palette: d3.scale.category10(),
       width: 800,
       height: 600,
-      margin: 40,
+      axisTickSize: 10,
+      margin: 5,
     }, options);
 
     this._paletteCount = 0;
@@ -138,59 +139,74 @@ var getTimeBounds;
     },
 
     _drawXAxis: function() {
+      var maxWidth = 0;
       var scale = this._timeScale;
 
       var box = this._graph.select(".chart-axis")
                            .append("svg:g")
                            .attr("class", "bottom")
                            .attr("transform", "translate(0," + this._options.height + ")");
-      var y2 = 10;
 
       var ticks = scale.ticks();
       var formatter = scale.tickFormat();
 
       for (var t of ticks) {
         var x = scale(t);
-        appendLine(box, x, 0, x, y2);
-        box.append("svg:text")
-           .attr("text-anchor", "middle")
-           .attr("x", x)
-           .attr("y", y2 * 1.5)
-           .attr("dy", "1em")
-           .html(formatter(t));
+        appendLine(box, x, 0, x, this._options.axisTickSize);
+        var text = box.append("svg:text");
+        text.text(formatter(t));
+        var bbox = text.node().getBBox();
+        maxWidth = Math.max(bbox.width + bbox.x, maxWidth);
+
+        text.attr("transform", "translate(" + x + ", " + (this._options.axisTickSize * 2) + "), " +
+                               "rotate(90), " +
+                               "translate(0, " + (-bbox.y / 2) + ")");
       }
+
+      this._padding.bottom = maxWidth + (this._options.axisTickSize * 2) + this._options.margin;
+      this._updateViewBox();
     },
 
     drawAxis: function(scale, options) {
-      options = options || {};
+      options = override({
+        position: "left",
+        ticks: 10
+      }, options);
 
-      var position = options.position || "left";
-      if (position != "right")
-        position = "left";
+      if (options.position != "right")
+        options.position = "left";
+
+      var maxWidth = 0;
 
       var box = this._graph.select(".chart-axis")
                            .append("svg:g")
-                           .attr("class", position);
-      var x2 = -10;
+                           .attr("class", options.position);
+      var x2 = -this._options.axisTickSize;
 
-      if (position == "right") {
+      if (options.position == "right") {
         box.attr("transform", "translate(" + this._options.width + ",0)");
         x2 = -x2;
       }
 
-      var ticks = scale.ticks(options.ticks || 10);
-      var formatter = scale.tickFormat(options.ticks || 10);
+      var ticks = scale.ticks(options.ticks);
+      var formatter = scale.tickFormat(options.ticks);
 
       for (var t of ticks) {
         var y = scale(t);
         appendLine(box, 0, y, x2, y);
-        box.append("svg:text")
-           .attr("dy", "0.3em")
-           .attr("text-anchor", position == "left" ? "end" : "start")
-           .attr("x", x2 * 1.5)
-           .attr("y", y)
-           .html(formatter(t));
+        var text = box.append("svg:text")
+                      .attr("text-anchor", options.position == "left" ? "end" : "start");
+        text.text(formatter(t));
+        var bbox = text.node().getBBox();
+        console.log(bbox);
+        var width = options.position == "left" ? -bbox.x : bbox.width + bbox.x;
+        maxWidth = Math.max(width, maxWidth);
+
+        text.attr("transform", "translate(" + (x2 * 2) + ", " + (y + (-bbox.y / 2)) + ")");
       }
+
+      this._padding[options.position] = maxWidth + (this._options.axisTickSize * 2) + this._options.margin;
+      this._updateViewBox();
     }
   }
 })();
