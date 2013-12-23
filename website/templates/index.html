@@ -43,14 +43,15 @@
 
 {% block script %}
 <script>
-  var startDate = moment().subtract('month', 1);
-  var endDate = moment();
+  var today = moment().startOf("day");
+  var startDate = today.clone().subtract('week', 1);
+  var endDate = today;
 
   function fetchMeasurements(type, callback) {
     if (type == "-")
       callback(null);
 
-    var url = "{% url 'measurements' %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.unix();
+    var url = "{% url 'measurements' %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.clone().add("day", 1).unix();
     $.getJSON(url, null, callback);
   }
 
@@ -111,14 +112,14 @@
 
   $('#graphrange').daterangepicker({
       ranges: {
-        'Last Week': [moment().subtract('days', 6), moment()],
-        'Last Month': [moment().subtract('month', 1), moment()],
-        'Last Year': [moment().subtract('year', 1), moment()]
+        'Last Week': [today.clone().subtract('week', 1), today],
+        'Last Month': [today.clone().subtract('month', 1), today],
+        'Last Year': [today.clone().subtract('year', 1), today]
       },
       startDate: startDate,
       endDate: endDate,
-      minDate: moment.unix({{ mindate|date:"U" }}),
-      maxDate: moment.unix({{ maxdate|date:"U" }})
+      minDate: moment.unix({{ mindate|date:"U" }}).startOf("day"),
+      maxDate: moment.unix({{ maxdate|date:"U" }}).startOf("day")
     },
     function(start, end) {
       startDate = start;
