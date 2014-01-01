@@ -43,7 +43,7 @@
 
 {% block script %}
 <script>
-  var today = moment().startOf("day");
+  var today = moment.unix({{ maxdate|date:"U" }}).startOf("day");
   var startDate = today.clone().subtract('week', 1);
   var endDate = today;
 
