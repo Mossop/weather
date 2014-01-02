@@ -138,6 +138,10 @@ var getTimeBounds;
       }, options);
 
       var bounds = getBounds(series, "value");
+      if (bounds[0] > 0)
+        bounds[0] = 0;
+      if (bounds[1] < 0)
+        bounds[1] = 0;
 
       var scale = d3.scale.linear().domain(bounds).nice().range([this._options.height, 0]);
       var palette = this._options.palette;
