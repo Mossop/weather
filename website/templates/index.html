@@ -51,7 +51,14 @@
     if (type == "-")
       callback(null);
 
+    var diff = endDate.diff(startDate, "days");
+
     var url = "{% url 'measurements' %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.clone().add("day", 1).unix();
+    if (diff >=14)
+      url += "&groupby=day";
+    else if (diff >5)
+      url += "&groupby=hour";
+
     $.getJSON(url, null, callback);
   }
 

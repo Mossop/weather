@@ -114,6 +114,9 @@ class Measurement(models.Model):
     value = models.FloatField()
     duration = models.IntegerField(default = 0)
 
+    def tztime(self):
+        return self.time.astimezone(self.sensor.device.location.timezone)
+
     def get_json(self, from_parent = False, from_child = False):
         obj = {
             "time": to_epoch(self.time),
