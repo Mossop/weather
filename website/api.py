@@ -6,7 +6,7 @@ from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseServerError
-from django.utils.timezone import utc
+from django.utils.timezone import utc, get_current_timezone
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime
@@ -55,11 +55,11 @@ def coalesce_group(measurements, type):
     else:
         return reduce(lambda x, y: x + y.value, measurements, 0) / len(measurements)
 
-def group_measurements(measurements, type, grouping):
+def group_measurements(measurements, type, timezone, grouping):
     groups = {}
 
     for measurement in measurements:
-        groupstart = measurement.tztime()
+        groupstart = measurement.time.astimezone(timezone)
         duration = 0
         if grouping == "hour":
             groupstart = groupstart.replace(minute = 0, second = 0, microsecond = 0)
@@ -98,13 +98,20 @@ def measurements(request):
 
     sensors = Sensor.objects.filter(type = type)
     for sensor in sensors:
+        tz = get_current_timezone()
+        try:
+            tz = sensor.device.location.timezone
+        except:
+            pass
+
         measurements = Measurement.objects.filter(sensor = sensor, time__gte = mindate, time__lte = maxdate).order_by("time")
         sdata = sensor.get_json(False, True)
         if "groupby" in request.GET:
-            sdata["measurements"] = sorted(group_measurements(measurements, type, request.GET["groupby"]), tsort)
+            sdata["measurements"] = group_measurements(measurements, type, tz, request.GET["groupby"])
         else:
-            sdata["measurements"] = sorted([m.get_json(True, False) for m in measurements], tsort)
+            sdata["measurements"] = [m.get_json(True, False) for m in measurements]
 
+        sdata["measurements"] = sorted(sdata["measurements"], tsort)
         results.append(sdata)
 
     return jsonify(results)
