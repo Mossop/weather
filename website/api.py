@@ -68,7 +68,7 @@ def group_measurements(measurements, type, timezone, grouping):
             groupstart = groupstart.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
             duration = 60 * 60 * 24
         elif grouping == "month":
-            groupstart = groupstart.replace(day = 0, hour = 0, minute = 0, second = 0, microsecond = 0)
+            groupstart = groupstart.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
             duration = 60 * 60 * 24 * monthrange(groupstart.year, groupstart.month)[1]
 
         if groupstart in groups:
