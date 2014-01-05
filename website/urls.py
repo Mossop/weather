@@ -9,6 +9,7 @@ import views
 
 urlpatterns = patterns('',
     url(r'^$', views.index),
+    url(r'^table$', views.table),
     url('^api/v1/submit$', api.submit),
     url('^api/v1/measurements$', api.measurements, name = "measurements")
 )

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-2">
+      <p class="text-center">
+        <select id="type">
+          <option value="-">---</option>
+{% for type in types %}
+          <option value="{{ type.id }}">{{ type }}</option>
+{% endfor %}
+        </select>
+      </p>
+    </div>
+    <div class="col-md-8 text-center">
+      <div id="range">
+        <i class="fa fa-calendar fa-lg"></i>
+        <span></span> <b class="caret"></b>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <p class="text-center">
+        <select id="grouping">
+          <option value="-">---</option>
+          <option value="hour">Hour</option>
+          <option value="day">Day</option>
+          <option value="month">Month</option>
+        </select>
+      </p>
+    </div>
+  </div>
+  <table id="results" class="table table-bordered">
+  </table>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  var today = moment.unix({{ maxdate|date:"U" }}).startOf("day");
+  var startDate = today.clone().subtract("week", 1);
+  var endDate = today;
+
+  function fetchMeasurements(type, grouping, callback) {
+    if (type == "-")
+      callback(null);
+
+    var diff = endDate.diff(startDate, "days");
+
+    var url = "{% url "measurements" %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.clone().add("day", 1).unix();
+    if (grouping)
+      url += "&groupby=" + grouping;
+
+    $.getJSON(url, null, callback);
+  }
+
+  function updateTable() {
+    var grouping = $("#grouping").val()
+    if (grouping == "-")
+      grouping = null;
+
+    fetchMeasurements($("#type").val(), grouping, function(data) {
+      var table = $("#results");
+      table.html("");
+      var sensors = ["<th>" + s.device.location.name + "</th>" for (s of data)];
+      table.append("<tr><th>Date</th>" + sensors + "</tr>")
+
+      var dates = [];
+      for (s = 0; s < data.length; s++) {
+        for (var m of data[s].measurements) {
+          if (!dates[m.time])
+            dates[m.time] = [];
+          dates[m.time][s] = m.value;
+        }
+      }
+
+      for (var d in dates) {
+        m = moment.unix(d);
+
+        sensors = "";
+        for (s = 0; s < data.length; s++)
+          sensors += "<td>" + dates[d][s] + "</td>";
+        table.append("<tr><td>" + m.format() + "</td>" + sensors + "</tr>");
+      }
+    });
+  }
+
+  function updatePicker() {
+    $("#range span").html(startDate.format("MMMM D, YYYY") + " - " + endDate.format("MMMM D, YYYY"));
+  }
+
+  $("#range").daterangepicker({
+      ranges: {
+        "Last Week": [today.clone().subtract("week", 1), today],
+        "Last Month": [today.clone().subtract("month", 1), today],
+        "Last Year": [today.clone().subtract("year", 1), today]
+      },
+      startDate: startDate,
+      endDate: endDate,
+      minDate: moment.unix({{ mindate|date:"U" }}).startOf("day"),
+      maxDate: moment.unix({{ maxdate|date:"U" }}).startOf("day")
+    },
+    function(start, end) {
+      startDate = start;
+      endDate = end;
+
+      updatePicker();
+      updateTable();
+    }
+  );
+
+  function init() {
+    $("#type").on("change", updateTable);
+    $("#grouping").on("change", updateTable);
+    updatePicker();
+  }
+
+  init();
+</script>
+{% endblock %}

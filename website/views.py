@@ -12,3 +12,13 @@ def index(request):
     }
 
     return render(request, "index.html", context)
+
+def table(request):
+    range = Measurement.objects.all().aggregate(Min("time"), Max("time"))
+    context = {
+        "types": Type.objects.all(),
+        "mindate": range['time__min'],
+        "maxdate": range['time__max']
+    }
+
+    return render(request, "table.html", context)
