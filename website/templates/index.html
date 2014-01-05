@@ -44,7 +44,7 @@
 {% block script %}
 <script>
   var today = moment.unix({{ maxdate|date:"U" }}).startOf("day");
-  var startDate = today.clone().subtract('week', 1);
+  var startDate = today.clone().subtract("week", 1);
   var endDate = today;
 
   function fetchMeasurements(type, callback) {
@@ -53,10 +53,10 @@
 
     var diff = endDate.diff(startDate, "days");
 
-    var url = "{% url 'measurements' %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.clone().add("day", 1).unix();
-    if (diff >=14)
+    var url = "{% url "measurements" %}?type=" + type + "&mindate=" + startDate.unix() + "&maxdate=" + endDate.clone().add("day", 1).unix();
+    if (diff >= 14)
       url += "&groupby=day";
-    else if (diff >5)
+    else if (diff > 5)
       url += "&groupby=hour";
 
     $.getJSON(url, null, callback);
@@ -90,7 +90,7 @@
   }
 
   function updateGraph() {
-    fetchMeasurements($('#left-type').val(), function(leftSeries) {
+    fetchMeasurements($("#left-type").val(), function(leftSeries) {
       updateLegend(leftSeries);
 
       var leftChartData = [
@@ -115,14 +115,14 @@
   }
 
   function updatePicker() {
-    $('#graphrange span').html(startDate.format('MMMM D, YYYY') + ' - ' + endDate.format('MMMM D, YYYY'));
+    $("#graphrange span").html(startDate.format("MMMM D, YYYY") + " - " + endDate.format("MMMM D, YYYY"));
   }
 
-  $('#graphrange').daterangepicker({
+  $("#graphrange").daterangepicker({
       ranges: {
-        'Last Week': [today.clone().subtract('week', 1), today],
-        'Last Month': [today.clone().subtract('month', 1), today],
-        'Last Year': [today.clone().subtract('year', 1), today]
+        "Last Week": [today.clone().subtract("week", 1), today],
+        "Last Month": [today.clone().subtract("month", 1), today],
+        "Last Year": [today.clone().subtract("year", 1), today]
       },
       startDate: startDate,
       endDate: endDate,
@@ -139,8 +139,8 @@
   );
 
   function init() {
-    $('#left-type').on('change', updateGraph);
-    $('#right-type').on('change', updateGraph);
+    $("#left-type").on("change", updateGraph);
+    $("#right-type").on("change", updateGraph);
     updatePicker();
 
     d3.select("#legend")
