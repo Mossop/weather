@@ -65,26 +65,32 @@ def group_measurements(measurements, type, timezone, grouping):
             groupstart = groupstart.replace(minute = 0, second = 0, microsecond = 0)
             duration = 60 * 60
         elif grouping == "day":
-            groupstart = groupstart.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+            groupstart = datetime(groupstart.year, groupstart.month, groupstart.day)
+            groupstart = timezone.localize(groupstart)
             duration = 60 * 60 * 24
         elif grouping == "month":
-            groupstart = groupstart.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
+            groupstart = datetime(groupstart.year, groupstart.month, 1)
+            groupstart = timezone.localize(groupstart)
             duration = 60 * 60 * 24 * monthrange(groupstart.year, groupstart.month)[1]
 
         if groupstart in groups:
-            groups[groupstart]["measurements"].append(measurement)
+            current = groups[groupstart]["value"]
+            count = groups[groupstart]["count"]
+            if type.type == "S":
+                current = current + measurement.value
+            else:
+                current = ((current * count) + measurement.value) / (count + 1)
+            groups[groupstart]["value"] = current
+            groups[groupstart]["count"] = count + 1
         else:
             groups[groupstart] = {
                 "time": to_epoch(groupstart),
                 "duration": 0 if type.type == "I" else duration,
-                "measurements": [measurement]
+                "value": measurement.value,
+                "count": 1
             }
 
-    return [{
-        "time": g["time"],
-        "duration": g["duration"],
-        "value": coalesce_group(g["measurements"], type)
-    } for g in groups.values()]
+    return groups.values()
 
 def measurements(request):
     def tsort(a, b):
